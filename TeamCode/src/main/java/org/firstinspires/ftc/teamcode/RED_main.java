@@ -143,8 +143,7 @@ public class RED_main extends LinearOpMode {
                         if (robot.dis_right.getDistance(DistanceUnit.INCH) > 28) {
                             sample_R_servo("open");
                             choosingState(power, "Strafe Right");
-                        } else {
-                            break;
+                        } else {                            break;
                         }
                     }
                     break;
