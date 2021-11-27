@@ -1,3 +1,4 @@
+
 /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -28,12 +29,11 @@
  */
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+        import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+        import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+        import com.qualcomm.robotcore.hardware.DcMotor;
+        import com.qualcomm.robotcore.util.ElapsedTime;
+        import com.qualcomm.robotcore.util.Range;
 
 
 /**
@@ -49,19 +49,15 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Linear OpMode", group="Linear Opmode")
+@TeleOp(name="Hyperdroid_Auto_R5", group="Linear Opmode")
 //@Disabled
-public class BasicOpMode_Linear extends LinearOpMode {
+public class Hyperdroid_Auto_R5 extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
     private DcMotor intakeDrive = null;
-    private DcMotorSimple duckDrive = null;
-    private DcMotor linear_lift = null;
-    private int lift =1;
-    private Boolean X_button_Pressed = false;
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -73,115 +69,54 @@ public class BasicOpMode_Linear extends LinearOpMode {
         leftDrive  = hardwareMap.get(DcMotor.class, "l_motor");
         rightDrive = hardwareMap.get(DcMotor.class, "r_motor");
         intakeDrive = hardwareMap.get(DcMotor.class, "INT");
-        duckDrive = hardwareMap.get(DcMotorSimple.class, "duck_motor");
-        linear_lift = hardwareMap.get(DcMotor.class, "linear_lift");
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
-        linear_lift.setDirection(DcMotor.Direction.FORWARD);
 
-        linear_lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        linear_lift.setTargetPosition(3000);
-
-        linear_lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        linear_lift.setPower(0.0);
-
-        linear_lift.setTargetPosition(0);
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
-        Boolean Intake_Positive = false;
-        Boolean Intake_Negative = false;
-        Boolean GP2_prev_A = false;
-        Boolean GP2_prev_B = false;
-        Boolean GP2_prev_Y = false;
-        Boolean GP2_prev_X = false;
-        Boolean Duck_Plate = false;
-        int linear_lift_target = 0;
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            // Setup a variable for each drive wheel to save power level for telemetry
 
+            // Setup a variable for each drive wheel to save power level for telemetry
             double leftPower;
             double rightPower;
+
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
             // POV Mode uses left stick to go forward, and right stick to turn.
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = -gamepad1.left_stick_y;
-            double turn = gamepad1.right_stick_x;
-            double deadzone = 0.25;
-            if (-deadzone < drive && drive < deadzone) drive = 0.0;
-            if (-deadzone < turn && turn < deadzone) turn = 0.0;
-            leftPower = Range.clip(drive + turn, -1.0, 1.0);
-            rightPower = Range.clip(drive - turn, -1.0, 1.0);
+            double turn  =  gamepad1.right_stick_x;
+            leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
+            rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
             // Tank Mode uses one stick to control each wheel.
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
             // leftPower  = -gamepad1.left_stick_y ;
             // rightPower = -gamepad1.right_stick_y ;
-            if (gamepad2.a && !GP2_prev_A) {
-                telemetry.addData("A Button", "IPos (%b), INeg (%b)", Intake_Positive, Intake_Negative);
-                Intake_Positive = !Intake_Positive;
-                Intake_Negative = false;
-
-                if (Intake_Positive) {
-                    intakeDrive.setPower(1);
-                } else {
-                    intakeDrive.setPower(0);
-                }
-            } else if (gamepad2.b && !GP2_prev_B) {
-                telemetry.addData("B Button", "IPos (%b), INeg (%b)", Intake_Positive, Intake_Negative);
-                Intake_Negative = !Intake_Negative;
-                Intake_Positive = false;
-                if (Intake_Negative) {
-                    intakeDrive.setPower(-1);
-                } else {
-                    telemetry.addLine("Stopping Intake");
-                    intakeDrive.setPower(0);
-                }
+            if (gamepad1.a){
+                intakeDrive.setPower(1);
             }
+            else if(gamepad1.b){
+                intakeDrive.setPower(-1);
+            } else{
+                intakeDrive.setPower(0);
+            }
+
 
             // Send calculated power to wheels
             leftDrive.setPower(leftPower);
             rightDrive.setPower(rightPower);
-            //---------------------------------------------------------------//
-            //duckDrive coding session//
-            if (gamepad2.y && !GP2_prev_Y) {
-                Duck_Plate = !Duck_Plate;
-                if (Duck_Plate) {
-                    duckDrive.setPower(0.45);
-                } else {
-                    duckDrive.setPower(0.0);
-                }
-            }
-            if (gamepad2.x) {
-                if (!GP2_prev_X) {
 
-                    linear_lift.setPower(0.45);
-                    linear_lift_target = lift + 1000;
-                    if (linear_lift_target > 3000) {
-                        linear_lift_target = 0;
-                    }
-                    linear_lift.setTargetPosition(linear_lift_target);
-                }
-            }
-            telemetry.addData("Lift", "Target: " + linear_lift_target);
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.update();
-
-            GP2_prev_B = gamepad2.b;
-            GP2_prev_A = gamepad2.a;
-            GP2_prev_Y = gamepad2.y;
-            GP2_prev_X = gamepad2.x;
-
         }
     }
 }
