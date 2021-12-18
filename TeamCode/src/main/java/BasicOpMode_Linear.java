@@ -36,6 +36,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -114,6 +117,8 @@ public class BasicOpMode_Linear extends LinearOpMode {
         Boolean GP2_prev_RB = false;
         Boolean Duck_Plate = false;
         Boolean GP1_prev_A = false;
+        long clawtiming = 0;
+        Boolean clawtimerrun = false;
         //Boolean GP2_prev_DPR = false;
         int linear_lift_target = 0;
         int lift = 0;
@@ -181,8 +186,8 @@ public class BasicOpMode_Linear extends LinearOpMode {
             if (gamepad2.left_bumper){
                 if (!GP2_prev_LB) {
                     linear_lift.setPower(0.45);
-                    linear_lift_target = lift + 1000;
-                    if (linear_lift_target > 3000) {
+                    linear_lift_target = lift + 2700;
+                    if (linear_lift_target > 2700) {
 //                        linear_lift.setPower(0.00);
                         linear_lift_target = 0;
                     }
@@ -194,25 +199,27 @@ public class BasicOpMode_Linear extends LinearOpMode {
             if (gamepad2.right_bumper) {
                 if (!GP2_prev_RB && linear_lift_target >10) {
                     linear_lift.setPower(0.45);
-                    linear_lift_target = lift - 1000;
+                    linear_lift_target = lift - 2700;
                 }
             }
             GP2_prev_RB = gamepad2.right_bumper;
 
             //if above 100 close claw unless the claw is set to be open
-            if (linear_lift.getCurrentPosition() > 100 && !GP1_prev_A) {
-                claw.setPosition(0.6);
+            if (linear_lift.getCurrentPosition() >= 2600){
+                dumpster.setPosition(0.8);
+            }
+            else {
                 dumpster.setPosition(0.04);
             }
-            else if (linear_lift.getCurrentPosition() <= 100 && !GP1_prev_A){
-                claw.setPosition(0.43);
-                dumpster.setPosition(0.04);
+
+            if (linear_lift.getCurrentPosition() <= 100 && !GP1_prev_A){
+                claw.setPosition(0.38);
+            }
+            else if (linear_lift.getCurrentPosition() > 100 && !GP1_prev_A) {
+                claw.setPosition(0.6);
             }
             else{
-                dumpster.setPosition(0.45);
-                if(dumpster.getPosition() > 0.40) {
-                    claw.setPosition(0.43);
-                }
+                claw.setPosition(0.36);
             }
 
 
@@ -233,7 +240,10 @@ public class BasicOpMode_Linear extends LinearOpMode {
             telemetry.addData("Lift", "Target: " + linear_lift_target);
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)");
+//            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("Lift Position", "Lift (%d)", linear_lift.getCurrentPosition());
+            telemetry.addData("Claw Position", "claw (%.2f)", claw.getPosition());
+            telemetry.addData("dumpster Position", "dumpster (%.2f)", dumpster.getPosition());
             telemetry.update();
 
         }
