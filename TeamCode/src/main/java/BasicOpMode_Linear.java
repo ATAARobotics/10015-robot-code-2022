@@ -32,6 +32,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -60,8 +61,13 @@ public class BasicOpMode_Linear extends LinearOpMode {
     private DcMotor intakeDrive = null;
     private DcMotorSimple duckDrive = null;
     private DcMotor linear_lift = null;
-    private int lift =1;
-    private Boolean X_button_Pressed = false;
+    private Servo dumpster = null;
+    private Servo clampr = null;
+    private Servo clampl = null;
+    private Servo claw = null;
+    private DcMotor sparkmini = null;
+    private Servo arm = null;
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -74,7 +80,13 @@ public class BasicOpMode_Linear extends LinearOpMode {
         rightDrive = hardwareMap.get(DcMotor.class, "r_motor");
         intakeDrive = hardwareMap.get(DcMotor.class, "INT");
         duckDrive = hardwareMap.get(DcMotorSimple.class, "duck_motor");
+        clampl = hardwareMap.get(Servo.class, "clampl");
+        clampr = hardwareMap.get(Servo.class, "clampr");
+        arm = hardwareMap.get(Servo.class, "arm");
+        dumpster = hardwareMap.get(Servo.class, "dumpster");
+        claw = hardwareMap.get(Servo.class, "claw");
         linear_lift = hardwareMap.get(DcMotor.class, "linear_lift");
+
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
@@ -98,10 +110,13 @@ public class BasicOpMode_Linear extends LinearOpMode {
         Boolean GP2_prev_A = false;
         Boolean GP2_prev_B = false;
         Boolean GP2_prev_Y = false;
-        Boolean GP2_prev_X = false;
+        Boolean GP2_prev_LB = false;
+        Boolean GP2_prev_RB = false;
         Boolean Duck_Plate = false;
+        Boolean GP1_prev_A = false;
+        //Boolean GP2_prev_DPR = false;
         int linear_lift_target = 0;
-
+        int lift = 0;
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // Setup a variable for each drive wheel to save power level for telemetry
@@ -116,15 +131,15 @@ public class BasicOpMode_Linear extends LinearOpMode {
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
             double deadzone = 0.25;
+
             if (-deadzone < drive && drive < deadzone) drive = 0.0;
             if (-deadzone < turn && turn < deadzone) turn = 0.0;
             leftPower = Range.clip(drive + turn, -1.0, 1.0);
             rightPower = Range.clip(drive - turn, -1.0, 1.0);
+            // Send calculated power to wheels
+            leftDrive.setPower(leftPower);
+            rightDrive.setPower(rightPower);
 
-            // Tank Mode uses one stick to control each wheel.
-            // - This requires no math, but it is hard to drive forward slowly and keep straight.
-            // leftPower  = -gamepad1.left_stick_y ;
-            // rightPower = -gamepad1.right_stick_y ;
             if (gamepad2.a && !GP2_prev_A) {
                 telemetry.addData("A Button", "IPos (%b), INeg (%b)", Intake_Positive, Intake_Negative);
                 Intake_Positive = !Intake_Positive;
@@ -135,7 +150,9 @@ public class BasicOpMode_Linear extends LinearOpMode {
                 } else {
                     intakeDrive.setPower(0);
                 }
-            } else if (gamepad2.b && !GP2_prev_B) {
+            }
+            GP1_prev_A = gamepad1.a;
+            if (gamepad2.b && !GP2_prev_B) {
                 telemetry.addData("B Button", "IPos (%b), INeg (%b)", Intake_Positive, Intake_Negative);
                 Intake_Negative = !Intake_Negative;
                 Intake_Positive = false;
@@ -147,9 +164,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
                 }
             }
 
-            // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
+            GP2_prev_B = gamepad2.b;
             //---------------------------------------------------------------//
             //duckDrive coding session//
             if (gamepad2.y && !GP2_prev_Y) {
@@ -160,28 +175,68 @@ public class BasicOpMode_Linear extends LinearOpMode {
                     duckDrive.setPower(0.0);
                 }
             }
-            if (gamepad2.x) {
-                if (!GP2_prev_X) {
+            GP2_prev_Y = gamepad2.y;
 
+            lift = linear_lift_target;
+            if (gamepad2.left_bumper){
+                if (!GP2_prev_LB) {
                     linear_lift.setPower(0.45);
                     linear_lift_target = lift + 1000;
                     if (linear_lift_target > 3000) {
+//                        linear_lift.setPower(0.00);
                         linear_lift_target = 0;
                     }
-                    linear_lift.setTargetPosition(linear_lift_target);
                 }
             }
+            linear_lift.setTargetPosition(linear_lift_target);
+            GP2_prev_LB = gamepad2.left_bumper;
+
+            if (gamepad2.right_bumper) {
+                if (!GP2_prev_RB && linear_lift_target >10) {
+                    linear_lift.setPower(0.45);
+                    linear_lift_target = lift - 1000;
+                }
+            }
+            GP2_prev_RB = gamepad2.right_bumper;
+
+            //if above 100 close claw unless the claw is set to be open
+            if (linear_lift.getCurrentPosition() > 100 && !GP1_prev_A) {
+                claw.setPosition(0.6);
+                dumpster.setPosition(0.04);
+            }
+            else if (linear_lift.getCurrentPosition() <= 100 && !GP1_prev_A){
+                claw.setPosition(0.43);
+                dumpster.setPosition(0.04);
+            }
+            else{
+                dumpster.setPosition(0.45);
+                if(dumpster.getPosition() > 0.40) {
+                    claw.setPosition(0.43);
+                }
+            }
+
+
+           // if (gamepad2.dpad_right) {
+                //if (!GP2_prev_DPR) {
+                   // arm.setPosition(-1);
+                   // clampr.setPosition(1);
+                   // clampl.setPosition(-1);
+                //}
+            //}
+           // else{
+               // arm.setPosition(0);
+              //  clampr.setPosition(-1);
+               // clampl.setPosition(1);
+            //}
+          //  GP2_prev_DPR = gamepad2.dpad_right;
+
             telemetry.addData("Lift", "Target: " + linear_lift_target);
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("Motors", "left (%.2f), right (%.2f)");
             telemetry.update();
-
-            GP2_prev_B = gamepad2.b;
-            GP2_prev_A = gamepad2.a;
-            GP2_prev_Y = gamepad2.y;
-            GP2_prev_X = gamepad2.x;
 
         }
     }
 }
+//get stickbugged lolololololol
