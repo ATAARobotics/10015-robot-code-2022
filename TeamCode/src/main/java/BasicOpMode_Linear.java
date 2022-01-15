@@ -249,4 +249,3 @@ public class BasicOpMode_Linear extends LinearOpMode {
         }
     }
 }
-//get stickbugged lolololololol
