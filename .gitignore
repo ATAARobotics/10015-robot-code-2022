@@ -85,3 +85,4 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+libraries/FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples/PushbotAutoDriveByGyro_Linear.java
