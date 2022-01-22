@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
+package org.firstinspires.ftc.teamcode;/* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -58,81 +58,44 @@ import static java.lang.Math.abs;
  * This hardware class assumes the following device names have been configured on the robot:
  * Note:  All names are lower case and some have single spaces between words.
  *
- * Motor channel:  Front Left  drive motor:        "fl_drive"  Tetrix  1:60 Port 0
- * Motor channel:  Front Right drive motor:        "fr_drive" Tetrix  1:60 Port 1
- * Motor channel:  Back Left drive motor:        "bl_drive" Tetrix 1:60 Port 2
- * Motor channel:  Back Right drive motor:        "br_drive" Tetrix 1:60 Port 3
+ * Motor channel:  Front Left  drive motor:        "fl_drive"  Tetrix  1:40 Port 0
+ * Motor channel:  Front Right drive motor:        "fr_drive" Tetrix  1:50 Port 1
+
  *
  *
- * Servo channel-0:  left gripper: "left_gripper"
- * Servo channel-1:  right gripper: "right_gripper"
- *
- * Left Color sensor        : "left_color"      Hub#1   I2C     port 1
- * Right Color sensor       : "right_color"     Hub#1   I2C     port 3
- *
- * Left Side Distance sensor     :   "dis_left"  Hub#1   I2C     port 2
- * Right Side Distance sensor     :   "dis_right"  Hub#2   I2C     port 2
- * Rear Distance sensor         :      "dis_rear"   Hub#2  I2C     port 3
- * Front Distance sensor        :       "dis_front"     Hub#2   I2C   port 1
+ * Servo channel-3:  left gripper: "dumpster"
+ * Servo channel-4:  right gripper: "claw"
+
  */
-public class R_5_CONFIG
+public class HyperDroidHardware
 {
+    public DcMotor leftDrive;
+    public DcMotor rightDrive;
     /* Public OpMode members. */
-    public DcMotor  fl_Drive   = null;
-    public DcMotor  fr_Drive  = null;
-    public DcMotor  bl_Drive   = null;
-    public DcMotor  br_Drive  = null;
-    public DcMotor  linear_lift    = null;
-    public DcMotor  l_intake = null;
-    public DcMotor  r_intake = null;
-
-
-
-    //Servos
-    public Servo    left_gripper  = null;
-    public Servo    right_gripper  = null;
-    public Servo    arm_servo  = null;
-    public Servo    left_hook = null;
-    public Servo    right_hook = null;
-    public Servo    linear_arm = null;
-    public Servo    clamp = null;
-    public Servo  l_arm    = null;
-    public Servo  r_arm   = null;
-    public Servo  r_gripper = null;
-    public Servo  l_gripper = null;
-    public Servo  foundation_clamp = null;
-    public Servo  arm = null;
-    public Servo  arm2 = null;
-
+    private DcMotor intakeDrive = null;
+    private DcMotorSimple duckDrive = null;
+    public DcMotor linear_lift = null;
+    private Servo dumpster = null;
+    private Servo clampr = null;
+    private Servo clampl = null;
+    private Servo claw = null;
+    private DcMotor sparkmini = null;
+    private Servo arm = null;
 
     //Limit switches
-    public DigitalChannel limit_switch = null;
 
     //Distance sensors
-    public Rev2mDistanceSensor dis_left; //2M distance sensor left
-    public Rev2mDistanceSensor dis_right; //2M distance sensor right
-    public Rev2mDistanceSensor dis_rear; //2M distance sensor rear
-    public Rev2mDistanceSensor dis_front_left; //2M distance sensor front
-    public Rev2mDistanceSensor dis_front_right; //2M distance sensor front
-
-
 
     //Color sensors
-    public NormalizedColorSensor  left_color;    // Hardware Device Object
-    public NormalizedColorSensor  right_color;
-    // public RevColorSensorV3 right_color;    // Hardware Device Object
 
     //LED
-    //public RevBlinkinLedDriver LED;
-
     //Drive options
     public enum DRIVE_OPTION {
         STRAIGHT,
         TURN,
-        RIGHTSTRAFE,
-        LEFTSTRAFE,
-        DIAGONALSTRAFERIGHT,
-        DIAGONALSTRAFELEFT,
+        BTURN,
+        BACK,
+
     }
 
     public enum INTAKE_OPTION {
@@ -155,13 +118,14 @@ public class R_5_CONFIG
     static final double     P_TURN_COEFF            = 0.05;
     static final double     P_FOUNDATION_TURN_COEFF            = 0.15; // Larger is more responsive, but also less stable
     static final double angPerPow   = 0.005556;
+    static final double     DuckDrive_Power        = 0.5;
 
     /* local OpMode members. */
     private HardwareMap hwMap           =  null;
     private ElapsedTime runtime = new ElapsedTime();
 
     /* Constructor */
-    public R_5_CONFIG(){
+    public HyperDroidHardware(){
 
     }
 
@@ -172,71 +136,41 @@ public class R_5_CONFIG
 
         // Define and Initialize Motors
         //Drive motors
-        fl_Drive = hwMap.get(DcMotor.class, "fl_drive");
-        fr_Drive = hwMap.get(DcMotor.class, "fr_drive");
-        bl_Drive = hwMap.get(DcMotor.class, "bl_drive");
-        br_Drive = hwMap.get(DcMotor.class, "br_drive");
-        l_intake = hwMap.get(DcMotor.class,"l_intake");
-        r_intake = hwMap.get(DcMotor.class,"r_intake");
+        leftDrive  = hwMap.get(DcMotor.class, "l_motor");
+        rightDrive = hwMap.get(DcMotor.class, "r_motor");
+        intakeDrive = hwMap.get(DcMotor.class, "INT");
+        duckDrive = hwMap.get(DcMotorSimple.class, "Duck_motor");
+        clampl = hwMap.get(Servo.class, "clampl");
+        clampr = hwMap.get(Servo.class, "clampr");
+        arm = hwMap.get(Servo.class, "arm");
+        dumpster = hwMap.get(Servo.class, "dumpster");
+        claw = hwMap.get(Servo.class, "claw");
         linear_lift = hwMap.get(DcMotor.class, "linear_lift");
 
-        linear_arm = hwMap.get(Servo.class, "arm");
-        clamp = hwMap.get(Servo.class, "clamp");
-        l_arm   = hwMap.get(Servo.class,"l_arm");
-        r_arm = hwMap.get(Servo.class,"r_arm");
-        r_gripper = hwMap.get(Servo.class,"r_gripper");
-        l_gripper = hwMap.get(Servo.class,"l_gripper");
-        foundation_clamp = hwMap.get(Servo.class,"foundation_servo");
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        linear_lift.setDirection(DcMotor.Direction.FORWARD);
 
+        linear_lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        linear_lift.setTargetPosition(3000);
+
+        linear_lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        linear_lift.setPower(0.0);
+        linear_lift.setTargetPosition(0);
 
         //Servos
 
         //color sensors
-        //left_color = hwMap.get(NormalizedColorSensor.class,"left_color");
-        //right_color = hwMap.get(NormalizedColorSensor.class,"right_color");
-
-        //right_color = hwMap.get(RevColorSensorV3.class,"right_color");
 
         //Distance sensors
-        dis_left = hwMap.get(Rev2mDistanceSensor.class, "dis_left");
-        dis_right = hwMap.get(Rev2mDistanceSensor.class, "dis_right");
-        dis_rear = hwMap.get(Rev2mDistanceSensor.class, "dis_rear");
-        dis_front_right = hwMap.get(Rev2mDistanceSensor.class, "dis_front_right");
-        dis_front_left = hwMap.get(Rev2mDistanceSensor.class, "dis_front_left");
-        linear_lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        fl_Drive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        bl_Drive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        fr_Drive.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        br_Drive.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        //arm.setDirection(DcMotor.Direction.REVERSE);
-        l_intake.setDirection(DcMotor.Direction.FORWARD);
-        r_intake.setDirection(DcMotor.Direction.REVERSE);
-
-        fl_Drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        fr_Drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        bl_Drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        br_Drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        //left_gripper.setDirection(Servo.Direction.FORWARD);
-        //right_gripper.setDirection(Servo.Direction.REVERSE);
 
         // Set all motors to zero power
-        fl_Drive.setPower(0);
-        bl_Drive.setPower(0);
-        fr_Drive.setPower(0);
-        fr_Drive.setPower(0);
-        //linear_lift.setPower(0);
-        l_intake.setPower(0);
-        r_intake.setPower(0);
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
-        fl_Drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        bl_Drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        fr_Drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        br_Drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //linear_lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // initial gyro sensor
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -252,9 +186,6 @@ public class R_5_CONFIG
             gyro_ready = false;
         }
         gyro_ready = true;
-
-
-
     }
 
     /**
@@ -262,85 +193,56 @@ public class R_5_CONFIG
      *
      */
     /**
-    public void clamp(double angle,String motion) {
-        if (motion=="open" ) {
-            angle = angle*angPerPow;
-            left_gripper.setPosition(angle);
-            right_gripper.setPosition(angle);
-        }
-        if(motion=="close") {
-            angle = -angle*angPerPow;
-            left_gripper.setPosition(angle);
-            right_gripper.setPosition(angle);
-        }
-    */
+     public void clamp(double angle,String motion) {
+     if (motion=="open" ) {
+     angle = angle*angPerPow;
+     left_gripper.setPosition(angle);
+     right_gripper.setPosition(angle);
+     }
+     if(motion=="close") {
+     angle = -angle*angPerPow;
+     left_gripper.setPosition(angle);
+     right_gripper.setPosition(angle);
+     }
+     */
 
 
     public void strafe(double power,String direction){
-        if(direction =="left"){
-            fl_Drive.setPower(-power);
-            fr_Drive.setPower(power);
-            bl_Drive.setPower(power);
-            br_Drive.setPower(-power);
-        }
-        if(direction == "right"){
-            fl_Drive.setPower(power);
-            fr_Drive.setPower(-power);
-            bl_Drive.setPower(-power);
-            br_Drive.setPower(power);
-        }
+
     }
+
     public void stop(){
         // Stop all motion;
-        fl_Drive.setPower(0);
-        bl_Drive.setPower(0);
-        fr_Drive.setPower(0);
-        br_Drive.setPower(0);
-        l_intake.setPower(0);
-        r_intake.setPower(0);
+        leftDrive.setPower(0.0);
+        rightDrive.setPower(0.0);
+
     }
     public void drive(DRIVE_OPTION option,double power){
         switch (option){
             case STRAIGHT:
-                fl_Drive.setPower(power);
-                bl_Drive.setPower(power);
-                fr_Drive.setPower(power);
-                br_Drive.setPower(power);
+                leftDrive.setPower(power);
+                rightDrive.setPower(power);
                 break;
             case TURN:
-                fl_Drive.setPower(power);
-                bl_Drive.setPower(power);
-                fr_Drive.setPower(-power);
-                br_Drive.setPower(-power);
+                leftDrive.setPower(power);
+                rightDrive.setPower(-power);
                 break;
-            case LEFTSTRAFE:
-                fl_Drive.setPower(power);
-                bl_Drive.setPower(-power);
-                fr_Drive.setPower(-power);
-                br_Drive.setPower(power);
-                break;
-            case RIGHTSTRAFE:
-                fl_Drive.setPower(-power);
-                bl_Drive.setPower(power);
-                fr_Drive.setPower(power);
-                br_Drive.setPower(-power);
-            case DIAGONALSTRAFELEFT:
-                fl_Drive.setPower(power);
-                br_Drive.setPower(power);
-            case DIAGONALSTRAFERIGHT:
-                fr_Drive.setPower(power);
-                bl_Drive.setPower(power);
+            case BTURN:
+                leftDrive.setPower(-power);
+                rightDrive.setPower(power);
+            case BACK:
+                leftDrive.setPower(-power);
+                rightDrive.setPower(-power);
+
         }
     }
 
-    public void intake(R_5_CONFIG.INTAKE_OPTION option, double power) {
+    public void intake(HyperDroidHardware.INTAKE_OPTION option, double power) {
         switch (option) {
             case INTAKE:
-                l_intake.setPower(-power);
-                r_intake.setPower(-power);
+                break;
             case OUTTAKE:
-                l_intake.setPower(-power);
-                r_intake.setPower(-power);
+                break;
         }
 
     }
@@ -394,10 +296,8 @@ public class R_5_CONFIG
         }
 
         // Send desired speeds to motors.
-        fl_Drive.setPower(left_power);
-        bl_Drive.setPower(left_power);
-        fr_Drive.setPower(right_power);
-        br_Drive.setPower(right_power);
+        leftDrive.setPower(left_power);
+        rightDrive.setPower(right_power);
 
         return onTarget;
     }
@@ -428,13 +328,20 @@ public class R_5_CONFIG
         }
     }
 
-    public void simpe_rotation (  double speed) {
+public void toggleDuckDrive () {
+        if (duckDrive.getPower() < 0.05) {
+            duckDrive.setPower(DuckDrive_Power);
+        }
+        else {
+            duckDrive.setPower(0.0);
+        }
+    }
+
+    public void simple_rotation (double speed) {
 
         // keep looping while we are still active, and not on heading.
-        fl_Drive.setPower(speed);
-        bl_Drive.setPower(speed);
-        fr_Drive.setPower(-speed);
-        br_Drive.setPower(-speed);
+        leftDrive.setPower(speed);
+        rightDrive.setPower(-speed);
     }
 
     public void drive_straight(double speed,double angle){
@@ -516,24 +423,24 @@ public class R_5_CONFIG
 
     //Arm encoder drive
     /**
-    public void arm_encoder(double speed, int counts){
-        int newTarget;
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // Determine new target position, and pass to motor controller
-        newTarget = arm.getCurrentPosition() + counts;
-        arm.setTargetPosition(newTarget);
-        // Turn On RUN_TO_POSITION
-        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        // start motion.
-        arm.setPower(abs(speed));
-        while (arm.isBusy()) {
-        }
-        // Stop all motion;
-        arm.setPower(0);
-        // Turn off RUN_TO_POSITION
-        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
+     public void arm_encoder(double speed, int counts){
+     int newTarget;
+     arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+     arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+     // Determine new target position, and pass to motor controller
+     newTarget = arm.getCurrentPosition() + counts;
+     arm.setTargetPosition(newTarget);
+     // Turn On RUN_TO_POSITION
+     arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+     // start motion.
+     arm.setPower(abs(speed));
+     while (arm.isBusy()) {
+     }
+     // Stop all motion;
+     arm.setPower(0);
+     // Turn off RUN_TO_POSITION
+     arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+     }
      */
 
     //Color sensor detection
