@@ -135,7 +135,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
-            double deadzone = 0.25;
+            double deadzone = 0.30;
 
             if (-deadzone < drive && drive < deadzone) drive = 0.0;
             if (-deadzone < turn && turn < deadzone) turn = 0.0;
@@ -185,7 +185,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
             lift = linear_lift_target;
             if (gamepad2.left_bumper){
                 if (!GP2_prev_LB) {
-                    linear_lift.setPower(0.45);
+                    linear_lift.setPower(0.53);
                     linear_lift_target = lift + 2700;
                     if (linear_lift_target > 2700) {
 //                        linear_lift.setPower(0.00);
@@ -198,14 +198,14 @@ public class BasicOpMode_Linear extends LinearOpMode {
 
             if (gamepad2.right_bumper) {
                 if (!GP2_prev_RB && linear_lift_target >10) {
-                    linear_lift.setPower(0.45);
+                    linear_lift.setPower(0.53);
                     linear_lift_target = lift - 2700;
                 }
             }
             GP2_prev_RB = gamepad2.right_bumper;
 
             //if above 100 close claw unless the claw is set to be open
-            if (linear_lift.getCurrentPosition() >= 2600){
+            if (linear_lift.getCurrentPosition() >= 2650){
                 dumpster.setPosition(0.8);
             }
             else {
