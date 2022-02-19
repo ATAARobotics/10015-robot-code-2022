@@ -216,10 +216,10 @@ public class BasicOpMode_Linear extends LinearOpMode {
                 claw.setPosition(0.38);
             }
             else if (linear_lift.getCurrentPosition() > 100 && !GP1_prev_A) {
-                claw.setPosition(0.6);
+                claw.setPosition(0.66);
             }
             else{
-                claw.setPosition(0.36);
+                claw.setPosition(0.33);
             }
 
 
