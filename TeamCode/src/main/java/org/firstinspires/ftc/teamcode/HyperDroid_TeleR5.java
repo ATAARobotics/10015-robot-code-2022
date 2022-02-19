@@ -108,7 +108,7 @@ public class HyperDroid_TeleR5 extends LinearOpMode {
                 robot.drive(TeamRobot_R5.DRIVE_OPTION.TURN, -turn_power);
             }
 
-            //Strafe Operation
+            //Strafe operation
             if (Math.abs(gamepad1.right_trigger) > 0.1) {
                 strafe_right = gamepad1.right_trigger;
                 strafe_power = Range.clip(strafe_right, -1.0, 1.0);
@@ -122,8 +122,6 @@ public class HyperDroid_TeleR5 extends LinearOpMode {
             if (Math.abs(gamepad1.right_stick_x) < 0.1 && Math.abs(gamepad1.left_stick_y) < 0.1 && gamepad1.left_trigger < 0.1 && gamepad1.right_trigger < 0.1) {
                 robot.stop();
             }
-
-            //Intake Operations
 
             if (gamepad1.a) {
                 robot.intake(TeamRobot_R5.INTAKE_OPTION.INTAKE, -1);
