@@ -136,16 +136,17 @@ public class HyperDroidHardware
 
         // Define and Initialize Motors
         //Drive motors
-        leftDrive  = hwMap.get(DcMotor.class, "l_motor");
-        rightDrive = hwMap.get(DcMotor.class, "r_motor");
+        leftDrive  = hwMap.get(DcMotor.class, "leftDrive");
+        rightDrive = hwMap.get(DcMotor.class, "rightDrive");
         intakeDrive = hwMap.get(DcMotor.class, "INT");
         duckDrive = hwMap.get(DcMotorSimple.class, "Duck_motor");
-        clampl = hwMap.get(Servo.class, "clampl");
-        clampr = hwMap.get(Servo.class, "clampr");
-        arm = hwMap.get(Servo.class, "arm");
+        //clampl = hwMap.get(Servo.class, "clampl");
+        //clampr = hwMap.get(Servo.class, "clampr");
+        //arm = hwMap.get(Servo.class, "arm");
         dumpster = hwMap.get(Servo.class, "dumpster");
         claw = hwMap.get(Servo.class, "claw");
         linear_lift = hwMap.get(DcMotor.class, "linear_lift");
+
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery

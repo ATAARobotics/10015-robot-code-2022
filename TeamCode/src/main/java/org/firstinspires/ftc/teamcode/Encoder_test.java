@@ -74,15 +74,15 @@ import java.util.List;
 
 
 
-@Autonomous (name = "RED_BACKUP")
-public class RED_BACKUP extends LinearOpMode
+@TeleOp (name = "encoder_test")
+public class Encoder_test extends LinearOpMode
 {
     static final double     COUNTS_PER_MOTOR_REV    = 2240 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 0.5  ;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER_INCHES   = 3.5 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
-            static final double     DRIVE_SPEED             = 0.6;
+    static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
     static final double     TURN_RADIUS             = 3.141569 * 14.125;
     //define 1,2 and 3 skyblock posiions
@@ -109,7 +109,7 @@ public class RED_BACKUP extends LinearOpMode
          */
 
         // Create camera instance
-        int cameraMonitorViewId = getCameraMonitorViewId();
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera2(OpenCvInternalCamera2.CameraDirection.BACK, cameraMonitorViewId);
 
         // Open async and start streaming inside opened callback
@@ -169,41 +169,18 @@ public class RED_BACKUP extends LinearOpMode
             // we're not doing anything else
             sleep(20);
 
-            // Figure out which stones the pipeline detected, and print them to telemetry
-            ArrayList<StoneOrientationAnalysisPipeline.AnalyzedStone> stones = pipeline.getDetectedStones();
-            if (stones.isEmpty()) {
-                telemetry.addLine("No object detected");
-            } else {
-                for (StoneOrientationAnalysisPipeline.AnalyzedStone stone : stones) {
-                    telemetry.addLine(String.format("Stone: Orientation=%s, Angle=%f", stone.orientation, stone.angle));
-                }
-
-                if (robot.gyro_ready) {
-                    encoderDrive_TICKS(0.75, 742, 613, 4.0);
-                    encoderDrive_TICKS(0.75, robot.leftDrive.getCurrentPosition() - 1392, robot.rightDrive.getCurrentPosition() + 904, 4.0);
-                    encoderDrive_TICKS(0.75, robot.leftDrive.getCurrentPosition() - 2839, robot.rightDrive.getCurrentPosition() + 1372, 4.0);
-                    encoderDrive_TICKS(0.75, robot.leftDrive.getCurrentPosition() - 4531, robot.rightDrive.getCurrentPosition() + 1428, 4.0);
-                    encoderDrive_TICKS(0.75, robot.leftDrive.getCurrentPosition() - 1392, robot.rightDrive.getCurrentPosition() + 904, 4.0);
-                    robot.toggleDuckDrive();
-                }
-            }
+            telemetry.addData("left: %s, right: %s",Integer.toString(robot.leftDrive.getCurrentPosition()), Integer.toString(robot.rightDrive.getCurrentPosition()));
             // Step through each leg of the path,
             // Note: Reverse movement is obtained by setting a negative distance (not speed)
-            //encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S1: Forward 47 Inches with 5 Sec timeout
+            // encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S1: Forward 47 Inches with 5 Sec timeout
             //encoderDrive(TURN_SPEED, 9.5, -9.5, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
             //encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
-        telemetry.update();
+            telemetry.update();
         }
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
     }
-
-    private int getCameraMonitorViewId() {
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        return cameraMonitorViewId;
-    }
-
     /*
      *  Method to perform a relative move, based on encoder counts.
      *  Encoders are not reset as the move is based on the current position.
@@ -222,60 +199,6 @@ public class RED_BACKUP extends LinearOpMode
         // Determine new target position, and pass to motor controller
         newLeftTarget = robot.leftDrive.getCurrentPosition() + (int) (leftInches * COUNTS_PER_INCH);
         newRightTarget = robot.rightDrive.getCurrentPosition() + (int) (rightInches * COUNTS_PER_INCH);
-        robot.leftDrive.setTargetPosition(newLeftTarget);
-        robot.rightDrive.setTargetPosition(newRightTarget);
-
-        // Turn On RUN_TO_POSITION
-        robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        // reset the timeout time and start motion.
-        runtime.reset();
-        runtime.reset();
-        robot.leftDrive.setPower(Math.abs(speed));
-        robot.rightDrive.setPower(Math.abs(speed));
-
-        // keep looping while we are still active, and there is time left, and both motors are running.
-        // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-        // its target position, the motion will stop.  This is "safer" in the event that the robot will
-        // always end the motion as soon as possible.
-        // However, if you require that BOTH motors have finished their moves before the robot continues
-        // onto the next step, use (isBusy() || isBusy()) in the loop test.
-        while (opModeIsActive() &&
-                (runtime.seconds() < timeoutS) &&
-                (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())) {
-
-            // Display it for the driver.
-            telemetry.addData("Path1", "Running to %7d :%7d", newLeftTarget, newRightTarget);
-            telemetry.addData("Path2", "Running at %7d :%7d",
-                    robot.leftDrive.getCurrentPosition(),
-                    robot.rightDrive.getCurrentPosition(),
-            telemetry.update());
-        }
-
-        // Stop all motion;
-        robot.leftDrive.setPower(0);
-        robot.rightDrive.setPower(0);
-
-        robot.leftDrive.setPower(0);
-        robot.rightDrive.setPower(0);
-
-        // Turn off RUN_TO_POSITION
-        robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        //  sleep(250);   // optional pause after each move
-    }
-    public void encoderDrive_TICKS ( double speed,
-                               double leftTicks, double rightTicks,
-                               double timeoutS){
-        int newLeftTarget;
-        int newRightTarget;
-
-
-        // Determine new target position, and pass to motor controller
-        newLeftTarget = robot.leftDrive.getCurrentPosition() + (int) (leftTicks);
-        newRightTarget = robot.rightDrive.getCurrentPosition() + (int) (rightTicks);
         robot.leftDrive.setTargetPosition(newLeftTarget);
         robot.rightDrive.setTargetPosition(newRightTarget);
 
@@ -314,7 +237,7 @@ public class RED_BACKUP extends LinearOpMode
         robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        //  sleep(250);   // optional pause after each move
+        sleep(250);   // optional pause after each move
     }
 
     static class StoneOrientationAnalysisPipeline extends OpenCvPipeline

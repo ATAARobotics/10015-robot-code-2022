@@ -74,7 +74,7 @@ import java.util.List;
 
 
 
-@TeleOp
+@Autonomous (name = "RED_MAIN")
 public class RED_MAIN extends LinearOpMode
 {
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
@@ -178,11 +178,13 @@ public class RED_MAIN extends LinearOpMode
             ArrayList<StoneOrientationAnalysisPipeline.AnalyzedStone> stones = pipeline.getDetectedStones();
             switch (stones.get(0).orientation) {
                 case LEFT:
-
+                    encoderDrive(0.75, TURN_RADIUS/8, -TURN_RADIUS/8, 5.0);
                     break;
                 case CENTER:
+                    encoderDrive(0.75, TURN_RADIUS/8, -TURN_RADIUS/8, 5.0);
                     break;
                 case RIGHT:
+                    encoderDrive(0.75, TURN_RADIUS/8, -TURN_RADIUS/8, 5.0);
                     break;
 
 
@@ -192,9 +194,9 @@ public class RED_MAIN extends LinearOpMode
             }
             // Step through each leg of the path,
             // Note: Reverse movement is obtained by setting a negative distance (not speed)
-            encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S1: Forward 47 Inches with 5 Sec timeout
-            encoderDrive(TURN_SPEED, 9.5, -9.5, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
-            encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
+            // encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S1: Forward 47 Inches with 5 Sec timeout
+            // encoderDrive(TURN_SPEED, 9.5, -9.5, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
+            // encoderDrive(DRIVE_SPEED, 20, 20, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
 
         }
 

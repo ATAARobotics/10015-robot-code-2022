@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
+package org.firstinspires.ftc.teamcode;/* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -27,14 +27,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.teamcode.TeamRobot_R5;
 
 
 /**
@@ -50,65 +49,114 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Linear OpMode1", group="Linear Opmode")
-@Disabled
-public class BasicOpMode_Linear extends LinearOpMode {
+@TeleOp(name="SwatRed_Tele_R5", group="Linear Opmode")
+//@Disabled
+public class HyperDroid_TeleR5 extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private TeamRobot_R5 robot = new TeamRobot_R5();
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
-
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        robot.init(this.hardwareMap);
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
 
+        double drive = 0;
+        double turn = 0;
+        boolean arm_state = false;
+        boolean clamp_state = false;
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
             // Setup a variable for each drive wheel to save power level for telemetry
-            double leftPower;
-            double rightPower;
+            double drive_power;
+            double turn_power;
+            double strafe_power;
+            double strafe_left = 0;
+            double strafe_right = 0;
+
 
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
             // POV Mode uses left stick to go forward, and right stick to turn.
             // - This uses basic math to combine motions and is easier to drive straight.
-            double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-            rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+            if (Math.abs(gamepad1.left_stick_y) > 0.1) {
+                drive = gamepad1.left_stick_y * 0.6; //Normal Drive Motion
+                if (gamepad1.b) {
+                    drive *= 2;                     // Turbo Drive Motion
+                }
+                drive_power = Range.clip(drive, -1.0, 1.0);
+                telemetry.addData("drive:", drive_power);
+                telemetry.update();
+                robot.drive(TeamRobot_R5.DRIVE_OPTION.STRAIGHT, drive_power);
+            }
 
-            // Tank Mode uses one stick to control each wheel.
-            // - This requires no math, but it is hard to drive forward slowly and keep straight.
-            // leftPower  = -gamepad1.left_stick_y ;
-            // rightPower = -gamepad1.right_stick_y ;
+            if (Math.abs(gamepad1.right_stick_x) > 0.1) {
+                turn = gamepad1.right_stick_x * 0.6;        //Normal Rotate Motion
+                if (gamepad1.b) {
+                    turn *= 2;                     // Turbo Rotate Motion
+                }
+                turn_power = Range.clip(turn, -1.0, 1.0);
+                robot.drive(TeamRobot_R5.DRIVE_OPTION.TURN, -turn_power);
+            }
 
-            // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
+            //Strafe Operation
+            if (Math.abs(gamepad1.right_trigger) > 0.1) {
+                strafe_right = gamepad1.right_trigger;
+                strafe_power = Range.clip(strafe_right, -1.0, 1.0);
+                robot.drive(TeamRobot_R5.DRIVE_OPTION.RIGHTSTRAFE, strafe_power);
+            } else if (Math.abs(gamepad1.left_trigger) > 0.1) {
+                strafe_left = gamepad1.left_trigger;
+                strafe_power = Range.clip(strafe_left, -1.0, 1.0);
+                robot.drive(TeamRobot_R5.DRIVE_OPTION.LEFTSTRAFE, strafe_power);
+            }
 
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-            telemetry.update();
+            if (Math.abs(gamepad1.right_stick_x) < 0.1 && Math.abs(gamepad1.left_stick_y) < 0.1 && gamepad1.left_trigger < 0.1 && gamepad1.right_trigger < 0.1) {
+                robot.stop();
+            }
+
+            //Intake Operations
+
+            if (gamepad1.a) {
+                robot.intake(TeamRobot_R5.INTAKE_OPTION.INTAKE, -1);
+            } else if (gamepad1.y) {
+                robot.intake(TeamRobot_R5.INTAKE_OPTION.OUTTAKE, 1);
+            }
+
+            if (!gamepad1.x && !gamepad1.b) {
+                robot.intake(TeamRobot_R5.INTAKE_OPTION.INTAKE, 0);
+            }
+            if (gamepad2.right_trigger > 0.1) {
+                robot.linear_lift.setPower(-gamepad2.right_trigger);
+            }
+            if (gamepad2.left_trigger > 0.1) {
+                robot.linear_lift.setPower(gamepad2.left_trigger);
+            }
+            if (gamepad2.left_trigger < 0.1 && gamepad2.right_trigger < 0.1) {
+                robot.linear_lift.setPower(0);
+            }
+
+            //Linear lift operations
+
         }
+
+        // Gripper operations
     }
 }
+
+/**
+ * Method to perfmorm a relative move, based on encoder counts.
+ * Encoders are not reset as the move is based on the current position.
+ * Move will stop if any of three conditions occur:
+ * 1) Move gets to the desired position
+ * 2) Move runs out of time
+ * 3) Driver stops the opmode running.
+ */
